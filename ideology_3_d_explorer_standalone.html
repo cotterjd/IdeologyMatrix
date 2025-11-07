@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ideological Landscape (Interactive 3D)</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin:0; padding:16px; background:#0b0d12; color:#e8edf3}
+    header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+    h1{font-size:clamp(18px,2.6vw,24px); margin:0}
+    .controls{display:flex; flex-wrap:wrap; gap:8px}
+    .controls > *{background:#161b22; color:#e8edf3; border:1px solid #2b3240; border-radius:10px; padding:8px 10px; cursor:pointer}
+    .controls select{cursor:pointer}
+    #chart{width:100%; height:78vh; min-height:520px; border:1px solid #1f2633; border-radius:14px}
+    footer{opacity:.7; font-size:12px; margin-top:10px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ideological Landscape of the Modern Right — Interactive 3D</h1>
+    <div class="controls">
+      <button id="resetView">Reset View</button>
+      <button id="viewTop">Top</button>
+      <button id="viewSide">Side</button>
+      <button id="viewIso">Iso</button>
+      <button id="toggleLabels">Toggle Labels</button>
+      <button id="downloadPng">Download PNG</button>
+      <label style="display:flex;align-items:center;gap:6px">Color by:
+        <select id="colorMode">
+          <option value="faction" selected>Faction</option>
+          <option value="populism">Populism</option>
+          <option value="morality">Moral Absolutism</option>
+          <option value="institution">Institutional Alignment</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <div id="chart"></div>
+  <footer>Drag to rotate • Scroll to zoom • Right-drag to pan</footer>
+
+  <script>
+    const figures = [
+      "Ben Shapiro","Mark Levin","Tucker Carlson","Matt Walsh","Brett Cooper",
+      "Seth Dillon","Dave Smith","James Lindsay","Konstantin Kisin","Megyn Kelly"
+    ];
+
+    const positions = [
+      [-1, 1, 1],    // Shapiro
+      [-0.5, 1, 1],  // Levin
+      [1, -1, -1],   // Carlson
+      [0.8, -0.8, -0.8],  // Walsh
+      [0.8, -0.7, -0.8],  // Cooper
+      [-0.7, 0.9, 1],     // Dillon
+      [0.9, -0.7, -0.9],  // Smith
+      [-0.8, 1, 0.5],     // Lindsay
+      [-0.7, 0.8, 0.5],   // Kisin
+      [0.3, 0, -0.5]      // Kelly
+    ];
+
+    // Derived arrays
+    const X = positions.map(p=>p[0]);
+    const Y = positions.map(p=>p[1]);
+    const Z = positions.map(p=>p[2]);
+
+    // Faction mapping for nicer colors
+    const faction = {
+      "Ben Shapiro":"Traditional Right",
+      "Mark Levin":"Traditional Right",
+      "Seth Dillon":"Traditional Right",
+      "James Lindsay":"Bridge Thinkers",
+      "Konstantin Kisin":"Bridge Thinkers",
+      "Megyn Kelly":"Bridge Thinkers",
+      "Tucker Carlson":"Populist Right",
+      "Matt Walsh":"Populist Right",
+      "Brett Cooper":"Populist Right",
+      "Dave Smith":"Populist Right"
+    };
+
+    const factionPalette = {
+      "Traditional Right":"#55c1ff",
+      "Populist Right":"#ff7b7b",
+      "Bridge Thinkers":"#a3ff8f"
+    };
+
+    function colorArrayBy(mode){
+      if(mode === 'faction'){
+        return figures.map(name=>factionPalette[faction[name]]);
+      }
+      if(mode === 'populism') return X; // continuous colorscale
+      if(mode === 'morality') return Y;
+      if(mode === 'institution') return Z;
+    }
+
+    let showText = true;
+
+    const trace = {
+      type: 'scatter3d',
+      mode: 'markers+text',
+      x: X,
+      y: Y,
+      z: Z,
+      text: figures,
+      textposition: 'top center',
+      marker: { size: 6, opacity: 0.9 },
+      hovertemplate: (
+        '<b>%{text}</b><br>'+
+        'Populism: %{x:.2f}<br>'+
+        'Moral Absolutism: %{y:.2f}<br>'+
+        'Institutional: %{z:.2f}<extra></extra>'
+      )
+    };
+
+    const layout = {
+      paper_bgcolor:'#0b0d12',
+      plot_bgcolor:'#0b0d12',
+      scene: {
+        xaxis: {title:'Populism (−Universalist → +Populist)', gridcolor:'#1f2633', zerolinecolor:'#1f2633', color:'#d0d7e3'},
+        yaxis: {title:'Moral Absolutism (−Relativist → +Absolutist)', gridcolor:'#1f2633', zerolinecolor:'#1f2633', color:'#d0d7e3'},
+        zaxis: {title:'Institutional Alignment (−Rebellious → +Institutional)', gridcolor:'#1f2633', zerolinecolor:'#1f2633', color:'#d0d7e3'},
+        camera: {eye: {x:1.6, y:1.6, z:0.9}},
+        dragmode: 'orbit'
+      },
+      margin:{l:0,r:0,t:10,b:0}
+    };
+
+    function render(mode='faction'){
+      const colors = colorArrayBy(mode);
+      const isContinuous = (mode !== 'faction');
+
+      const data = [{
+        ...trace,
+        marker: {
+          ...trace.marker,
+          color: colors,
+          colorscale: isContinuous ? 'Portland' : undefined,
+          showscale: isContinuous,
+          colorbar: isContinuous ? {title: mode.charAt(0).toUpperCase()+mode.slice(1)} : undefined
+        },
+        text: showText ? figures : Array(figures.length).fill('')
+      }];
+
+      Plotly.react('chart', data, layout, {displayModeBar: true, responsive: true});
+    }
+
+    render();
+
+    // Controls
+    document.getElementById('colorMode').addEventListener('change', (e)=>render(e.target.value));
+    document.getElementById('toggleLabels').addEventListener('click', ()=>{ showText = !showText; render(document.getElementById('colorMode').value); });
+
+    function setCamera(eye){
+      Plotly.update('chart', {}, {scene:{camera:{eye}}});
+    }
+
+    document.getElementById('resetView').addEventListener('click', ()=> setCamera({x:1.6, y:1.6, z:0.9}));
+    document.getElementById('viewTop').addEventListener('click', ()=> setCamera({x:0.01, y:0.01, z:2.5}));
+    document.getElementById('viewSide').addEventListener('click', ()=> setCamera({x:2.5, y:0.01, z:0.01}));
+    document.getElementById('viewIso').addEventListener('click', ()=> setCamera({x:1.8, y:1.2, z:1.2}));
+
+    document.getElementById('downloadPng').addEventListener('click', async ()=>{
+      const gd = document.getElementById('chart');
+      const url = await Plotly.toImage(gd, {format:'png', height:900, width:1400, scale:2});
+      const a = document.createElement('a');
+      a.href = url; a.download = 'ideology-3d.png'; a.click();
+    });
+  </script>
+</body>
+</html>
