@@ -98,19 +98,27 @@
         "James Lindsay",
         "Konstantin Kisin",
         "Megyn Kelly",
+        "Jordan Cotter",
+        "Channing Hamilton",
+        "Talbot Bowden",
+        "Curt Weber",
       ];
 
       const positions = [
         [-1, 1, 1], // Shapiro
         [-0.5, 1, 1], // Levin
-        [1, -1, -1], // Carlson
-        [0.8, -0.8, -0.8], // Walsh
+        [1, -1, -0.8], // Carlson
+        [0.8, -0.8, -0.7], // Walsh
         [0.8, -0.7, -0.8], // Cooper
         [-0.7, 0.9, 1], // Dillon
-        [0.9, -0.7, -0.9], // Smith
+        [0.9, -0.7, -1], // Smith
         [-0.8, 1, 0.5], // Lindsay
         [-0.7, 0.8, 0.5], // Kisin
         [0.3, 0, -0.5], // Kelly
+        [0, -0.9, -0.9], // Jordan Cotter
+        [0.5, 0.7, 1], // Channing Hamilton
+        [-0.9, 0.6, 0.5], // Talbot Bowden
+        [0.2, -0.3, 0.8], // Curt Weber
       ];
 
       // Derived arrays
@@ -130,12 +138,17 @@
         "Matt Walsh": "Populist Right",
         "Brett Cooper": "Populist Right",
         "Dave Smith": "Populist Right",
+        "Jordan Cotter": "Bros",
+        "Channing Hamilton": "Bros",
+        "Talbot Bowden": "Bros",
+        "Curt Weber": "Bros",
       };
 
       const factionPalette = {
         "Traditional Right": "#55c1ff",
         "Populist Right": "#ff7b7b",
         "Bridge Thinkers": "#a3ff8f",
+        Bros: "#d3d3d3",
       };
 
       function colorArrayBy(mode) {
